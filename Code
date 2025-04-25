@@ -1,0 +1,53 @@
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+# Datele originale
+X = np.array([50, 60, 70, 80, 90], dtype=float)  # Suprafața (m²)
+y = np.array([100000, 102000, 140000, 160000, 180000], dtype=float)  # Preț (lei)
+
+# Normalizarea datelor (important pentru NN)
+X_normalized = X / 100        # Normalizăm la scala 0.5–0.9
+y_normalized = y / 1000000    # Normalizăm la scala 0.1–0.18
+
+# Crearea modelului
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(1, input_dim=1)
+])
+
+# Compilarea cu o rată de învățare mai mică
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.1),
+              loss='mean_squared_error')
+
+# Antrenarea pentru mai multe epoci cu verbose=1 pentru a vedea progresul
+history = model.fit(X_normalized, y_normalized, epochs=1000, verbose=0)
+
+# Verificarea pierderii
+plt.plot(history.history['loss'])
+plt.title('Evoluția pierderii')
+plt.xlabel('Epocă')
+plt.ylabel('Pierdere')
+plt.show()
+ 
+# Predicții pe datele normalizate
+predictions_normalized = model.predict(X_normalized)
+
+# Denormalizarea predicțiilor
+predictions = predictions_normalized * 1000000
+
+# Crearea graficului
+fig, ax = plt.subplots()
+ax.scatter(X, y, color='blue', label='Date reale')
+ax.plot(X, predictions, color='red', label='Regresie Liniară')
+ax.set_xlabel('Suprafață (m²)')
+ax.set_ylabel('Preț (lei)')
+ax.set_title('Preț vs Suprafață')
+ax.legend()
+plt.show()
+
+# Prezicere pentru 75 m²
+new_X = np.array([75], dtype=float)
+predicted_normalized = model.predict(new_X / 100)  # Normalizăm intrarea
+predicted_price = predicted_normalized[0][0] * 1000000  # Denormalizăm ieșirea
+
+print(f"Preț estimat pentru {new_X[0]} m²: {predicted_price:.2f} Lei")
